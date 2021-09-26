@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
 
 DIFF=${DIFF:-diff}
-jsonfileref=${TMPDIR:-/tmp}/flatjson.test.json
-jsonfile=${TMPDIR:-/tmp}/flatjson.test.json
 json='{"key1": "value1",
 "key2": [1,5],
 "key3": {"a": "x\"'\''", "b": 4}
