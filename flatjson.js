@@ -1,40 +1,37 @@
 #!/usr/bin/env node
 const fs = require('fs');
 
-const singleQuote = function(s) {
-  return `'${s.replace("\\", "\\\\").replace("'", "\\'")}'`;
-}
+let quoted = (s) => s;
+let quotedKey = quoted;
 
-const doubleQuote = function(s) {
-  return `"${s.replace("\\", "\\\\").replace('"', '\\"')}"`;
-}
-
-const identity = function(s) {
-  return s;
-}
-
-const printJSON = function(data, prefix, quoted)
+const printJSON = function(data, prefix)
 {
   switch (data.constructor.name)
   {
     case 'Array':
       for (const i in data)
-        printJSON(data[i], `${prefix}[${i}]`, quoted);
+        printJSON(data[i], `${prefix}[${i}]`);
       break;
     case 'Object':
       for (const k in data)
-        printJSON(data[k], `${prefix}.${quoted(k)}`, quoted);
+        printJSON(data[k], `${prefix}.${quotedKey(k)}`);
       break;
     case 'String':
-      console.log(`${prefix} = ${quoted(data)}`);
+      fs.writeSync(1, `${prefix} = ${quoted(data)}\n`);
       break;
     default:
-      console.log(`${prefix} = ${data}`);
+      fs.writeSync(1, `${prefix} = ${data}\n`);
   }
 }
 
+const initQuoted = function(f)
+{
+  quoted = f;
+  const pattern = /[\x00-\x2F\x3A-\x40\x5B-\x60\x7E\x7F]/;
+  quotedKey = (s) => pattern.test(s) ? f(s) : s;
+}
+
 let ifile = 2;
-let quoted = identity;
 
 switch (process.argv[2]) {
   case '-h':
@@ -44,14 +41,42 @@ switch (process.argv[2]) {
  -Q          string are in double quote
  -h, --help  this help`);
     break;
-  case '-q':
-    quoted = singleQuote;
+
+  case '-q': {
+    const replacements = {
+      '\'': '\\\'',
+      '\\': '\\\\',
+      '\a': '\\a',
+      '\b': '\\b',
+      '\t': '\\t',
+      '\n': '\\n',
+      '\v': '\\v',
+      '\f': '\\f',
+      '\r': '\\r',
+    };
+    const reg = /['\\\x07-\x0D]/g
+    initQuoted((s) => `'${s.replace(reg, (c) => replacements[c])}'`);
     ++ifile;
     break;
-  case '-Q':
-    quoted = doubleQuote;
+  }
+
+  case '-Q': {
+    const replacements = {
+      '\"': '\\\"',
+      '\\': '\\\\',
+      '\a': '\\a',
+      '\b': '\\b',
+      '\t': '\\t',
+      '\n': '\\n',
+      '\v': '\\v',
+      '\f': '\\f',
+      '\r': '\\r',
+    };
+    const reg = /["\\\x07-\x0D]/g
+    initQuoted((s) => `"${s.replace(reg, (c) => replacements[c])}"`);
     ++ifile;
     break;
+  }
 }
 
 let filename = process.argv[ifile] || '/dev/stdin';
