@@ -4,6 +4,13 @@ const fs = require('fs');
 let quoted = (s) => s;
 let quotedKey = quoted;
 
+function write(s)
+{
+  const len = fs.writeSync(1, s);
+  if (len != s.length)
+    throw 42;
+}
+
 const printJSON = function(data, prefix)
 {
   switch (data.constructor.name)
@@ -17,10 +24,10 @@ const printJSON = function(data, prefix)
         printJSON(data[k], `${prefix}.${quotedKey(k)}`);
       break;
     case 'String':
-      fs.writeSync(1, `${prefix} = ${quoted(data)}\n`);
+      write(`${prefix} = ${quoted(data)}\n`);
       break;
     default:
-      fs.writeSync(1, `${prefix} = ${data}\n`);
+      write(`${prefix} = ${data}\n`);
   }
 }
 
@@ -88,12 +95,20 @@ const processFile = function(err, data) {
     errcode = errcode || 2;
   }
   else {
+    let json;
     try {
-      printJSON(JSON.parse(data), '', quoted);
+      json = JSON.parse(data);
     }
     catch (e) {
       console.error(`Parse error: ${filename}: ${e.message}`)
       errcode = errcode || 3;
+    }
+
+    try {
+      printJSON(json, '');
+    }
+    catch (e) {
+      process.exit(errcode || 4);
     }
   }
 
