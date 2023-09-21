@@ -9,7 +9,7 @@ json='{"key1": "value1",
 typeset -i errcode=0
 test() {
   echo -n "$1..."
-  "$DIFF" <(echo "$2") <(./flatjson.js $3 <<<"$json" 2>&1) \
+  "$DIFF" <(echo "$2") <(./flatjson.py $3 <<<"$json" 2>&1) \
     && echo ' Ok' \
     || { ((errcode++)); echo ' Failed'; }
 }
