@@ -11,7 +11,7 @@ Usage: flatjson [-q | -Q] [FILE]...
 # Example
 
 ```sh
-flatjson.js <<<'{"key1": "value1",
+flatjson.py <<<'{"key1": "value1",
 "key2": [1,5,7],
 "key3": {"a": "x", "b": 4}
 }'
